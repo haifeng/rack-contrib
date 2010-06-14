@@ -66,8 +66,17 @@ module Rack
       [403, { 'Content-Type' => 'text/html', 'Content-Length' => '0' }, []]
     end
 
+
+    def remote_ip env
+      if addr = env['HTTP_X_FORWARDED_FOR']
+        addr.split(',').first.strip
+      else
+        env['REMOTE_ADDR']
+      end 
+    end
+
     def deflect? env
-      @remote_addr = env['REMOTE_ADDR']
+      @remote_addr = remote_ip env
       return false if options[:whitelist].include? @remote_addr
       return true  if options[:blacklist].include? @remote_addr
       sync { watch }
